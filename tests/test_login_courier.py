@@ -9,10 +9,11 @@ from helpers import (random_word, login_courier, register_new_courier_and_return
 class TestLoginCourier:
 
     login, password, name = register_new_courier_and_return_login_password()
+    user_id = login_courier(login, password).json()['id']
 
     @classmethod
-    def teardown_class(self):
-        delete_courier(login_courier(self.login, self.password).json()['id'])
+    def teardown_class(cls):
+        delete_courier(cls.user_id)
 
     @allure.title('Проверка логина курьера с валидными значениями login, password')
     def test_login_courier_with_valid_credentials(self):
@@ -29,7 +30,7 @@ class TestLoginCourier:
         response = requests.post(TestData.BASE_URL + TestData.LOGIN_COURIER_URL, data=payload)
         assert response.status_code == 400
         # Баг. Сервер возвращает статус 504 вместо 400 если не передать поле password
-        assert response.json()['message'] == 'Недостаточно данных для входа'
+        assert response.json()['message'] == TestData.NOT_ENOUGHT_DATA_ERROR
 
     @allure.title('Проверка ошибки логина курьера c невалидными значениями полей login, password')
     @pytest.mark.parametrize('name, password', [(name, random_word()),
@@ -38,4 +39,4 @@ class TestLoginCourier:
     def test_login_courier_with_invalid_credentials_return_error(self, name, password):
         response = login_courier(name, password)
         assert response.status_code == 404
-        assert response.json()['message'] == 'Учетная запись не найдена'
+        assert response.json()['message'] == TestData.ACCOUNT_NOT_FOUND_ERROR

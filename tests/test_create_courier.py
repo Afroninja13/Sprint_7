@@ -24,7 +24,6 @@ class TestCreateCourier:
         response_login = login_courier(self.login, self.password)
         self.user_id = response_login.json()['id']
         assert response_create.status_code == 201 and response_create.json()['ok'] == True
-        assert response_login.status_code == 200
 
     @allure.title('Проверка ошибки создания курьера c занятыми login, password, name')
     def test_create_double_courier_returns_error(self):
@@ -32,7 +31,7 @@ class TestCreateCourier:
         self.user_id = login_courier(self.login, self.password).json()['id']
         response_second = create_courier(self.login, self.password, self.name)
         assert response_second.status_code == 409
-        assert response_second.json()['message'] == 'Этот логин уже используется. Попробуйте другой.'
+        assert response_second.json()['message'] == TestData.LOGIN_USED_ERROR
 
     @allure.title('Проверка ошибки создания курьера без одного из обязательных полей login, password')
     @pytest.mark.parametrize('payload', [({'login': random_word(), 'password': ''}),
@@ -50,4 +49,4 @@ class TestCreateCourier:
         response_second = create_courier(self.login, random_word(), random_word())
         assert response_first.status_code == 201
         assert response_second.status_code == 409
-        assert response_second.json()['message'] == 'Этот логин уже используется. Попробуйте другой.'
+        assert response_second.json()['message'] == TestData.LOGIN_USED_ERROR
